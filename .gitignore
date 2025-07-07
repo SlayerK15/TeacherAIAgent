@@ -44,6 +44,9 @@ pytest_cache/
 
 # FastAPI/Starlette static files
 staticfiles/
+# Node
+node_modules/
+.next/
 
 # Ignore API keys and secrets
 *.env
