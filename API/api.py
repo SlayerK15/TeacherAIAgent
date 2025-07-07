@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from Agents.Discovery_Agent import DiscoveryAgent
 from Agents.Simplification_Agent import SimplificationAgent
@@ -135,6 +135,15 @@ async def clarify(
     )
     context_memory.append_to_list(f'{session_id}_clarifications', {'q': user_question, 'a': answer})
     return {"answer": answer}
+
+
+@app.post("/tts")
+async def tts(text: str = Form(...)):
+    """Convert text to speech using VoiceProcessingAgent and return audio."""
+    audio_path = voice_agent.text_to_speech(text)
+    if not audio_path:
+        return JSONResponse({"error": "TTS failed"}, status_code=500)
+    return FileResponse(audio_path, media_type="audio/mpeg", filename="speech.mp3")
 
 
 @app.get("/")

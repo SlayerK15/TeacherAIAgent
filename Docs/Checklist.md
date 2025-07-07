@@ -6,7 +6,7 @@
 
 * [ ] Create and initialize GitHub repo
 * [ ] Set up Python FastAPI backend (REST API server)
-* [ ] Set up basic HTML/JS frontend (input, output, play/record buttons)
+* [ ] Set up React + Next.js dashboard with voice controls
 
 ### **2. LLM & Agent Integration**
 
@@ -81,7 +81,7 @@
 
 ## **Potential Expansions (After MVP)**
 
-* [ ] Advanced dashboard UI (React/Vue, user stats, etc.)
+* [ ] Advanced dashboard features (analytics, user stats, etc.)
 * [ ] Adaptive learning paths and personalized progress tracking
 * [ ] Visual aids: real-time diagrams, code snippets, etc.
 * [ ] Cloud backend with load balancing/scalability
