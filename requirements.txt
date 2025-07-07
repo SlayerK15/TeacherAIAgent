@@ -1,0 +1,14 @@
+openai>=1.3.3
+whisper
+pyttsx3
+tqdm
+numpy
+torch
+soundfile
+
+#API
+fastapi
+uvicorn
+
+#Database
+chromadb

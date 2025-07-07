@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Teacher Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f6f6fa; }
+    h1 { color: #2d3a52; }
+    label { font-weight: bold; }
+    textarea, input[type="text"] { width: 90%; padding: 8px; margin-bottom: 12px; }
+    button { padding: 10px 18px; background: #3657f8; color: #fff; border: none; border-radius: 5px; font-size: 16px; }
+    .result { background: #fff; padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 8px #ccc; }
+    .clarify-section { margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <h1>AI Teacher Dashboard</h1>
+
+  <form id="teach-form">
+    <label for="prompt">Ask a question or learning topic:</label><br>
+    <input type="text" id="prompt" name="prompt" required>
+    <br>
+    <button type="submit">Get Lesson</button>
+  </form>
+
+  <div class="result" id="result" style="display:none;">
+    <h2>AI Teacher Response</h2>
+    <div id="topic-tiers"></div>
+    <div id="teaching-steps"></div>
+    <div id="lesson"></div>
+    <div id="engaged"></div>
+
+    <div class="clarify-section">
+      <label for="clarify">Ask a follow-up question (about any topic):</label><br>
+      <input type="text" id="clarify" name="clarify" style="width:70%;">
+      <button onclick="clarify(event)">Clarify</button>
+      <div id="clarify-answer"></div>
+    </div>
+  </div>
+
+  <script>
+    let session_id = "default";
+    let current_topics = [];
+
+    document.getElementById('teach-form').onsubmit = async function(e) {
+      e.preventDefault();
+      document.getElementById("result").style.display = "none";
+      document.getElementById("clarify-answer").textContent = "";
+
+      const user_prompt = document.getElementById("prompt").value;
+      const formData = new FormData();
+      formData.append('user_prompt', user_prompt);
+      formData.append('session_id', session_id);
+
+      const res = await fetch('http://127.0.0.1:8000/teach', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      session_id = data.session_id || session_id;
+      current_topics = Object.keys(data.engaged_lessons || data.lessons || {});
+
+      // Render
+      document.getElementById("result").style.display = "block";
+      document.getElementById("topic-tiers").innerHTML = "<b>Topics:</b><br>" +
+        JSON.stringify(data.topic_tiers, null, 2).replace(/\n/g,'<br>').replace(/ /g,'&nbsp;');
+
+      let steps_html = "";
+      for (const topic in data.simplified_steps) {
+        steps_html += `<b>${topic}</b>:<br>`;
+        steps_html += "<ul>";
+        for (const step of data.simplified_steps[topic]) {
+          steps_html += `<li>${step}</li>`;
+        }
+        steps_html += "</ul>";
+      }
+      document.getElementById("teaching-steps").innerHTML = "<b>Teaching Steps:</b><br>" + steps_html;
+
+      let lesson_html = "";
+      for (const topic in data.lessons) {
+        lesson_html += `<b>${topic}:</b><br>${data.lessons[topic]}<br><br>`;
+      }
+      document.getElementById("lesson").innerHTML = "<b>Lesson:</b><br>" + lesson_html;
+
+      let engaged_html = "";
+      for (const topic in data.engaged_lessons) {
+        engaged_html += `<b>${topic}:</b><br>${data.engaged_lessons[topic]}<br><br>`;
+      }
+      document.getElementById("engaged").innerHTML = "<b>Engaged Lesson:</b><br>" + engaged_html;
+    };
+
+    window.clarify = async function(event) {
+      event.preventDefault();
+      const user_question = document.getElementById("clarify").value;
+      if (!user_question) return;
+      if (current_topics.length === 0) return;
+
+      // For demo, always pick first topic (could add dropdown if you want)
+      const topic = current_topics[0];
+
+      const formData = new FormData();
+      formData.append('user_question', user_question);
+      formData.append('topic', topic);
+      formData.append('session_id', session_id);
+
+      const res = await fetch('http://127.0.0.1:8000/clarify', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      document.getElementById("clarify-answer").innerHTML =
+        "<b>Clarification:</b><br>" + (data.answer || "Sorry, no answer.");
+    };
+  </script>
+</body>
+</html>
