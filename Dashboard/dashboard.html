@@ -4,115 +4,92 @@
   <meta charset="UTF-8">
   <title>AI Teacher Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f6f6fa; }
-    h1 { color: #2d3a52; }
-    label { font-weight: bold; }
-    textarea, input[type="text"] { width: 90%; padding: 8px; margin-bottom: 12px; }
-    button { padding: 10px 18px; background: #3657f8; color: #fff; border: none; border-radius: 5px; font-size: 16px; }
-    .result { background: #fff; padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: 0 2px 8px #ccc; }
-    .clarify-section { margin-top: 32px; }
+    body { background: #f5f7fa; font-family: sans-serif; padding: 2em; }
+    .container { max-width: 600px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0002; padding: 2em; }
+    textarea, input[type=number] { width: 100%; font-size: 1em; border-radius: 6px; border: 1px solid #ccc; padding: 0.5em; margin-bottom: 1em;}
+    button { padding: 0.6em 2em; font-size: 1em; border-radius: 6px; border: none; background: #4682f3; color: #fff; cursor: pointer; }
+    button:disabled { background: #b0c7f5; cursor: not-allowed; }
+    #status, #response { margin-top: 1.2em; }
+    video { margin-top: 1.5em; width: 100%; border-radius: 12px; box-shadow: 0 2px 8px #0002; background: #000; }
+    .label { font-weight: bold; margin-bottom: 0.3em; display: block; }
+    .loader { border: 6px solid #f3f3f3; border-top: 6px solid #4682f3; border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle;}
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <h1>AI Teacher Dashboard</h1>
-
-  <form id="teach-form">
-    <label for="prompt">Ask a question or learning topic:</label><br>
-    <input type="text" id="prompt" name="prompt" required>
-    <br>
-    <button type="submit">Get Lesson</button>
-  </form>
-
-  <div class="result" id="result" style="display:none;">
-    <h2>AI Teacher Response</h2>
-    <div id="topic-tiers"></div>
-    <div id="teaching-steps"></div>
-    <div id="lesson"></div>
-    <div id="engaged"></div>
-
-    <div class="clarify-section">
-      <label for="clarify">Ask a follow-up question (about any topic):</label><br>
-      <input type="text" id="clarify" name="clarify" style="width:70%;">
-      <button onclick="clarify(event)">Clarify</button>
-      <div id="clarify-answer"></div>
-    </div>
+  <div class="container">
+    <h2>AI Teacher Dashboard</h2>
+    <form id="teachForm" autocomplete="off">
+      <label class="label" for="prompt">Ask a question or request a lesson:</label>
+      <textarea id="prompt" required placeholder="E.g., Teach me about Newton's Laws"></textarea>
+      <label class="label" for="videoLength">Total video length (minutes):</label>
+      <input id="videoLength" type="number" min="4" max="120" value="8" required>
+      <button type="submit" id="submitBtn">Submit</button>
+    </form>
+    <div id="status"></div>
+    <div id="response"></div>
+    <div id="videoContainer"></div>
   </div>
 
   <script>
-    let session_id = "default";
-    let current_topics = [];
+    document.addEventListener('DOMContentLoaded', function() {
+      const teachForm = document.getElementById('teachForm');
+      const promptInput = document.getElementById('prompt');
+      const videoLengthInput = document.getElementById('videoLength');
+      const statusDiv = document.getElementById('status');
+      const responseDiv = document.getElementById('response');
+      const videoContainer = document.getElementById('videoContainer');
+      const submitBtn = document.getElementById('submitBtn');
 
-    document.getElementById('teach-form').onsubmit = async function(e) {
-      e.preventDefault();
-      document.getElementById("result").style.display = "none";
-      document.getElementById("clarify-answer").textContent = "";
+      teachForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log("FORM SUBMIT intercepted"); // DEBUG: You should see this in console every submit!
+        if (submitBtn.disabled) return;
 
-      const user_prompt = document.getElementById("prompt").value;
-      const formData = new FormData();
-      formData.append('user_prompt', user_prompt);
-      formData.append('session_id', session_id);
+        statusDiv.innerHTML = '<span class="loader"></span> Generating lesson and video. This can take a few minutes...';
+        videoContainer.innerHTML = '';
+        responseDiv.innerHTML = '';
+        submitBtn.disabled = true;
 
-      const res = await fetch('http://127.0.0.1:8000/teach', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
+        const formData = new FormData();
+        formData.append('user_prompt', promptInput.value);
+        formData.append('video_minutes', videoLengthInput.value);
 
-      session_id = data.session_id || session_id;
-      current_topics = Object.keys(data.engaged_lessons || data.lessons || {});
+        try {
+          const response = await fetch('http://localhost:8000/teach', {
+            method: 'POST',
+            body: formData
+          });
+          if (!response.ok) throw new Error("API error");
+          const data = await response.json();
 
-      // Render
-      document.getElementById("result").style.display = "block";
-      document.getElementById("topic-tiers").innerHTML = "<b>Topics:</b><br>" +
-        JSON.stringify(data.topic_tiers, null, 2).replace(/\n/g,'<br>').replace(/ /g,'&nbsp;');
+          responseDiv.innerHTML =
+            `<b>Topic Tiers:</b> <pre>${JSON.stringify(data.topic_tiers, null, 2)}</pre>` +
+            `<b>Simplified Steps:</b> <pre>${JSON.stringify(data.simplified_steps, null, 2)}</pre>` +
+            `<b>Lessons:</b> <pre>${JSON.stringify(data.lessons, null, 2)}</pre>`;
 
-      let steps_html = "";
-      for (const topic in data.simplified_steps) {
-        steps_html += `<b>${topic}</b>:<br>`;
-        steps_html += "<ul>";
-        for (const step of data.simplified_steps[topic]) {
-          steps_html += `<li>${step}</li>`;
+          if (data.video_url) {
+            const absUrl = data.video_url.startsWith('/')
+              ? window.location.origin + data.video_url
+              : data.video_url;
+            videoContainer.innerHTML = `
+              <video controls>
+                <source src="${absUrl}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            `;
+            statusDiv.textContent = '✅ Video lesson ready!';
+          } else {
+            statusDiv.textContent = 'No video generated.';
+          }
+        } catch (err) {
+          statusDiv.textContent = '❌ An error occurred. Please try again.';
+          console.error(err);
+        } finally {
+          submitBtn.disabled = false;
         }
-        steps_html += "</ul>";
-      }
-      document.getElementById("teaching-steps").innerHTML = "<b>Teaching Steps:</b><br>" + steps_html;
-
-      let lesson_html = "";
-      for (const topic in data.lessons) {
-        lesson_html += `<b>${topic}:</b><br>${data.lessons[topic]}<br><br>`;
-      }
-      document.getElementById("lesson").innerHTML = "<b>Lesson:</b><br>" + lesson_html;
-
-      let engaged_html = "";
-      for (const topic in data.engaged_lessons) {
-        engaged_html += `<b>${topic}:</b><br>${data.engaged_lessons[topic]}<br><br>`;
-      }
-      document.getElementById("engaged").innerHTML = "<b>Engaged Lesson:</b><br>" + engaged_html;
-    };
-
-    window.clarify = async function(event) {
-      event.preventDefault();
-      const user_question = document.getElementById("clarify").value;
-      if (!user_question) return;
-      if (current_topics.length === 0) return;
-
-      // For demo, always pick first topic (could add dropdown if you want)
-      const topic = current_topics[0];
-
-      const formData = new FormData();
-      formData.append('user_question', user_question);
-      formData.append('topic', topic);
-      formData.append('session_id', session_id);
-
-      const res = await fetch('http://127.0.0.1:8000/clarify', {
-        method: 'POST',
-        body: formData
       });
-      const data = await res.json();
-
-      document.getElementById("clarify-answer").innerHTML =
-        "<b>Clarification:</b><br>" + (data.answer || "Sorry, no answer.");
-    };
+    });
   </script>
 </body>
 </html>

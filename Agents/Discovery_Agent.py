@@ -24,7 +24,6 @@ class DiscoveryAgent:
             raise ValueError("input_type must be 'text' or 'audio'")
 
     def _strip_codeblock(self, text):
-        # Remove triple-backtick code blocks (optionally with "json" or "python" or nothing)
         text = text.strip()
         if text.startswith("```"):
             text = re.sub(r"^```[a-zA-Z]*\n?|```$", "", text, flags=re.MULTILINE).strip()
@@ -35,7 +34,7 @@ class DiscoveryAgent:
         llm_prompt = f"""
 Given the following user prompt, analyze and break down the learning objectives into three tiers:
 - Tier 1: The main topic and all essential supporting topics needed to understand the user's prompt.
-- Tier 2: Topics that are helpful and often needed to support Tier 1, but not absolutely required.
+- Tier 2: Topics that are helpful and often needed to support Tier 1, but not absolutely required. Please be generous—include as many useful or common supporting topics as possible.
 - Tier 3: Background or related topics that are not important for Tier 1, but useful for deeper understanding or answering questions about Tier 2.
 
 User Prompt: \"\"\"{prompt_text}\"\"\"

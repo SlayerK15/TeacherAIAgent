@@ -63,3 +63,8 @@ staticfiles/
 
 # Ignore response/output files
 responce.txt
+
+#ignore all frames and audio files
+/output/
+Responce.txt
+arial.ttf
