@@ -27,6 +27,7 @@ Detailed documentation: **`Docs/Complete_App_Guide.md`**.
 - `POST /storyboard` — storyboard JSON generation
 - `POST /visual-intelligence` — transcript-driven keyword/asset plan
 - `POST /clarify` — follow-up Q&A
+- `POST /enhance-scenes` — director-grade scene enhancement JSON
 - `GET /` — serves dashboard
 - `GET /api/health` — health status
 

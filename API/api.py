@@ -13,6 +13,7 @@ from Agents.VoiceProcessing_Agent import VoiceProcessingAgent
 from Agents.VideoGenerationAgent import VideoGenerationAgent
 from Agents.StoryboardComposer_Agent import StoryboardComposer_Agent
 from Agents.VisualIntelligenceLayer_Agent import VisualIntelligenceLayer_Agent
+from Agents.SceneDirector_Agent import SceneDirector_Agent
 from Agents.Logger_Agent import LoggerAgent, set_current
 
 import openai
@@ -66,6 +67,7 @@ context_memory = ContextMemoryAgent()
 video_generation_agent = VideoGenerationAgent(voice_agent)
 storyboard_composer = StoryboardComposer_Agent(llm_fn=openai_llm)
 visual_intelligence_agent = VisualIntelligenceLayer_Agent(collector=storyboard_composer.fetcher, llm_fn=openai_llm)
+scene_director_agent = SceneDirector_Agent(llm_fn=openai_llm)
 
 app = FastAPI()
 
@@ -256,6 +258,18 @@ async def visual_intelligence(
         "chunk_count": len(plan),
         "plan": plan,
     }
+
+
+@app.post("/enhance-scenes")
+async def enhance_scenes(
+    scene_plan_json: str = Form(...),
+):
+    try:
+        scene_plan = json.loads(scene_plan_json)
+    except Exception:
+        return JSONResponse({"error": "scene_plan_json must be valid JSON"}, status_code=400)
+    enhanced = scene_director_agent.enhance(scene_plan)
+    return {"scene_count": len(enhanced), "scenes": enhanced}
 
 
 @app.post("/clarify")

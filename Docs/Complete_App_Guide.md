@@ -102,7 +102,17 @@ Returns:
 - `chunk_count`
 - `plan[]` with chunk text, extracted keywords, visual type, assets.
 
-## 4.4 `POST /clarify`
+## 4.4 `POST /enhance-scenes`
+Enhance an existing scene plan into director-grade visual storytelling metadata.
+
+Form fields:
+- `scene_plan_json` (required JSON string list of scenes)
+
+Returns:
+- `scene_count`
+- `scenes[]` enhanced scenes preserving narration text
+
+## 4.5 `POST /clarify`
 Ask follow-up questions grounded in session context.
 
 Form fields:
@@ -113,7 +123,7 @@ Form fields:
 Returns:
 - `answer`
 
-## 4.5 `GET /` and `GET /api/health`
+## 4.6 `GET /` and `GET /api/health`
 - `/`: dashboard file response (or status JSON fallback)
 - `/api/health`: service health JSON
 
