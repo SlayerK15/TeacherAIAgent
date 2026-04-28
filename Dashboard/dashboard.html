@@ -182,12 +182,6 @@
       </details>
     </div>
 
-    
-    <div id="visualCard" class="card">
-      <label>Visual Intelligence Preview <span class="hint">(extract keywords + fetch graphics)</span></label>
-      <button id="visualBtn" class="ghost" type="button">Generate visual plan</button>
-      <pre id="visualDump" style="margin-top:0.7em;">Run after entering a prompt or transcript.</pre>
-    </div>
 
     <div id="logCard" class="card hidden">
       <label style="margin-bottom: 0.6em;">Live log</label>
@@ -421,18 +415,7 @@
       }
     });
 
-    $('visualBtn').addEventListener('click', async () => {
-      const transcript = $('transcript').textContent?.trim() || $('prompt').value.trim();
-      if (!transcript) {
-        $('visualDump').textContent = 'Add a prompt first or generate a lesson so transcript exists.';
-        return;
-      }
-      $('visualDump').textContent = 'Loading visual plan...';
-      const fd = new FormData();
-      fd.append('transcript', transcript);
-      fd.append('topic', $('prompt').value.trim());
-      try {
-        const r = await fetch(`${API_BASE}/visual-intelligence`, { method: 'POST', body: fd });
+    
         const data = await r.json();
         $('visualDump').textContent = JSON.stringify(data, null, 2);
       } catch (e) {

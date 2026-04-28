@@ -4,6 +4,7 @@ from Agents.SceneplannerAgent import SceneplannerAgent
 from Agents.AssetFetcher_Agent import AssetFetcher_Agent
 from Agents.LayoutEngine_Agent import LayoutEngine_Agent
 from Agents.VisualIntelligenceLayer_Agent import VisualIntelligenceLayer_Agent
+from Agents.SceneDirector_Agent import SceneDirector_Agent
 from Agents.Logger_Agent import get_current
 
 
@@ -22,7 +23,8 @@ class StoryboardComposer_Agent:
         self.planner = SceneplannerAgent(llm_fn=llm_fn)
         self.fetcher = AssetFetcher_Agent(cache_dir=cache_dir, per_keyword=per_keyword)
         self.layout = LayoutEngine_Agent()
-        self.visual_layer = VisualIntelligenceLayer_Agent(collector=self.fetcher)
+        self.visual_layer = VisualIntelligenceLayer_Agent(collector=self.fetcher, llm_fn=llm_fn)
+        self.scene_director = SceneDirector_Agent(llm_fn=llm_fn)
 
     def close(self):
         self.fetcher.close()
@@ -81,10 +83,12 @@ class StoryboardComposer_Agent:
             })
             cursor += scene["duration"]
 
+        enhanced = self.scene_director.enhance(composed)
+
         return {
-            "scenes": composed,
+            "scenes": enhanced,
             "total_duration": round(cursor, 2),
-            "scene_count": len(composed),
+            "scene_count": len(enhanced),
         }
 
     @staticmethod
