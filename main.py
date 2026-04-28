@@ -2,7 +2,6 @@ import os
 from Agents.Discovery_Agent import DiscoveryAgent
 from Agents.Simplification_Agent import SimplificationAgent
 from Agents.Teaching_Agent import TeachingAgent
-from Agents.Engagement_Agent import EngagementAgent
 from Agents.Clarification_Agent import ClarificationAgent
 from Agents.ContextMemory_Agent import ContextMemoryAgent
 from Agents.VoiceProcessing_Agent import VoiceProcessingAgent
@@ -10,7 +9,9 @@ import openai
 import json
 
 
-openai.api_key = os.getenv("OPENAI_API_KEY") or "sk-..."
+openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    raise RuntimeError("OPENAI_API_KEY environment variable is not set.")
 
 def openai_llm(prompt: str, model: str = "gpt-4o", temperature: float = 0.4) -> str:
     response = openai.chat.completions.create(
@@ -29,7 +30,6 @@ voice_agent = VoiceProcessingAgent(stt_model_size="base")
 discovery_agent = DiscoveryAgent(llm_fn=openai_llm, voice_agent=voice_agent)
 simplify_agent = SimplificationAgent(llm_fn=openai_llm)
 teaching_agent = TeachingAgent(llm_fn=openai_llm)
-engagement_agent = EngagementAgent(llm_fn=openai_llm)
 clarification_agent = ClarificationAgent(llm_fn=openai_llm)
 context_memory = ContextMemoryAgent()
 
@@ -78,22 +78,13 @@ def main():
         print(f"\n--- Lesson: {topic} ---\n{lesson}\n")
     context_memory.save('lessons', lessons)
 
-    # Engagement
-    engaged_lessons = engagement_agent.run(lessons)
-    print("\n--- ENGAGEMENT AGENT (ENHANCED LESSONS) ---")
-    for topic, engaged in engaged_lessons.items():
-        print(f"\n--- Engaged Lesson: {topic} ---\n{engaged}\n")
-    context_memory.save('engaged_lessons', engaged_lessons)
-
     # Clarification step (with context memory)
     follow_up = input("\nDo you have a follow-up question about any topic? (Press Enter to skip): ")
     if follow_up.strip():
-        # For now, default to the first topic
-        topic = list(engaged_lessons.keys())[0]
+        topic = list(lessons.keys())[0]
         answer = clarification_agent.run(
             user_question=follow_up,
             lesson=lessons[topic],
-            engaged_lesson=engaged_lessons[topic],
             context={
                 "topic_tiers": context_memory.get('topic_tiers'),
                 "simplified_steps": context_memory.get('simplified_steps'),

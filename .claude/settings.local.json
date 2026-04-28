@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv --version)",
+      "Bash(curl *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(uv add *)",
+      "Bash(nohup uv *)",
+      "Bash(disown)",
+      "PowerShell(Stop-Process *)",
+      "Bash(xargs -I{} tail -F {})",
+      "Bash(uv run python -c ' *)",
+      "WebFetch(domain:elevenlabs.io)",
+      "WebSearch",
+      "Bash(python -c ' *)",
+      "Bash(uv run *)",
+      "WebFetch(domain:github.com)",
+      "Bash(uv lock *)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(uv pip *)",
+      "WebFetch(domain:help.elevenlabs.io)",
+      "Bash(start \"\" \"D:\\\\New_folder\\\\TeacherAIAgent\\\\Dashboard\\\\dashboard.html\")",
+      "Bash(cmd.exe /c start \"\" \"D:\\\\New_folder\\\\TeacherAIAgent\\\\Dashboard\\\\dashboard.html\")",
+      "Bash(awk -F. '{print $NF}')",
+      "Bash(xxd)",
+      "Bash(python *)",
+      "Read(//d/New_folder/TeacherAIAgent/**)",
+      "Bash(rm -f \"D:/New_folder/TeacherAIAgent/_test_text.png\")",
+      "Bash(git *)"
+    ]
+  }
+}

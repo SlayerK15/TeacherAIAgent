@@ -1,6 +1,7 @@
 import chromadb
 from chromadb.config import Settings
 from typing import Any, Optional
+from Agents.Logger_Agent import get_current
 
 class ContextMemoryAgent:
     def __init__(self, collection_name="ait_teacher_memory"):
@@ -10,16 +11,20 @@ class ContextMemoryAgent:
         self.collection = self.client.get_or_create_collection(name=collection_name)
 
     def save(self, key: str, value: Any):
-        # Store as string (could use json.dumps for dicts/lists)
+        log = get_current()
+        if log: log.info("ContextMemory.save", key=key, value_len=len(str(value)))
         self.collection.upsert(
             ids=[key],
             documents=[str(value)]
         )
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
+        log = get_current()
         results = self.collection.get(ids=[key])
         if results["documents"]:
+            if log: log.info("ContextMemory.get hit", key=key)
             return results["documents"][0]
+        if log: log.info("ContextMemory.get miss", key=key)
         return default
 
     def append_to_list(self, key: str, value: Any):

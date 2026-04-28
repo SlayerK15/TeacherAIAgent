@@ -40,16 +40,21 @@ main.py           # (Entry point, if used)
    # On Unix/Mac:
    source venv/bin/activate
    ```
-3. **Install dependencies:**
+3. **Install deps with uv:**
    ```sh
-   pip install -r requirements.txt
+   uv sync
    ```
 4. **Set your OpenAI API key:**
-   - Create a `.env` file or set the `OPENAI_API_KEY` environment variable.
+   - Set the `OPENAI_API_KEY` environment variable. Optional: `PEXELS_API_KEY`, `UNSPLASH_ACCESS_KEY`.
 
 5. **Run the API server:**
    ```sh
-   uvicorn API.api:app --reload
+   uv run uvicorn API.api:app --reload
+   ```
+
+6. **New endpoint — structured storyboard:**
+   ```sh
+   curl -X POST http://localhost:8000/storyboard -F "user_prompt=Explain photosynthesis" -F "video_minutes=2"
    ```
 
 ## Usage

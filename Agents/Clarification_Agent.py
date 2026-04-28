@@ -1,4 +1,5 @@
 from typing import Optional, Dict
+from Agents.Logger_Agent import get_current
 
 class ClarificationAgent:
     def __init__(self, llm_fn):
@@ -34,5 +35,9 @@ Respond with a clear, concise, and helpful clarification. If the question is amb
 If possible, give an additional analogy or example to help the learner understand.
 Return your response as plain text (not as a list or JSON).
         """
+        log = get_current()
+        if log: log.step_start("ClarificationAgent.llm_call",
+                               question_len=len(user_question), prompt_len=len(prompt))
         answer = self.llm_fn(prompt)
+        if log: log.step_end("ClarificationAgent.llm_call", answer_chars=len(answer))
         return answer.strip()

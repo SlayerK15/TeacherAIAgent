@@ -1,5 +1,6 @@
 import json
 import re
+from Agents.Logger_Agent import get_current
 
 class SimplificationAgent:
     """
@@ -27,29 +28,39 @@ class SimplificationAgent:
         Returns a dict mapping each main/supporting topic to a list of simple steps or segments for teaching.
         """
         main_topics = topic_tiers.get("tier_1", [])
-        support_topics = topic_tiers.get("tier_2", [])
+        # Tier 2/3 are background context for the LLM, NOT lesson topics — keeping them
+        # in the simplification output bloated lessons (e.g. "History of Earth" turning
+        # into 11 separate sub-lessons). The teaching pipeline now stays focused on tier_1.
+        support_context = topic_tiers.get("tier_2", [])
 
-        if not main_topics and not support_topics:
-            print("SimplificationAgent: No topics provided for breakdown.")
+        log = get_current()
+        if log: log.info("SimplificationAgent.run",
+                         tier1_count=len(main_topics),
+                         tier2_context_count=len(support_context))
+        if not main_topics:
+            if log: log.warn("SimplificationAgent: no tier_1 topics provided")
+            else: print("SimplificationAgent: No tier_1 topics provided for breakdown.")
             return {}
 
         prompt = (
-            "You are an expert teacher. For each of the topics below, break it down into 3-5 clear, beginner-friendly learning steps. "
-            "Use simple language, avoid jargon, and only include the topics listed. Format your response as valid JSON like this:\n"
+            "You are an expert teacher. For each of the MAIN topics below, break it down into 3-5 clear, beginner-friendly learning steps. "
+            "Only produce keys for the main topics — the supporting context list is only there to help you frame the steps with appropriate background. "
+            "Format your response as valid JSON like this:\n"
             '{\n  "topic1": ["step 1", "step 2", ...],\n  "topic2": ["step 1", ...]\n}\n\n'
-            f"Tier 1 (Main topics): {main_topics}\n"
-            f"Tier 2 (Supporting topics): {support_topics}\n"
-            "Now, provide a breakdown for each topic:"
+            f"Main topics (produce one entry per item): {main_topics}\n"
+            f"Supporting context (do NOT produce entries for these — use them only as reference): {support_context}\n"
+            "Now, provide a breakdown for each MAIN topic only:"
         )
 
-        print("Prompt sent to LLM:\n", prompt)  # (Optional: Remove in production)
-
+        if log: log.step_start("SimplificationAgent.llm_call", prompt_len=len(prompt))
         result = self.llm_fn(prompt)
+        if log: log.step_end("SimplificationAgent.llm_call", response_len=len(result))
         result = self._strip_codeblock(result)
         try:
             steps_by_topic = json.loads(result)
         except Exception as e:
-            print("SimplificationAgent: Failed to parse LLM response. Raw output:")
-            print(result)
+            if log: log.error("SimplificationAgent json parse failed", error=str(e), raw=result[:400])
+            else: print("SimplificationAgent: Failed to parse LLM response. Raw output:\n" + result)
             steps_by_topic = {}
+        if log: log.info("SimplificationAgent done", topic_count=len(steps_by_topic))
         return steps_by_topic
