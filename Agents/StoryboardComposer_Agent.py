@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 from Agents.SceneplannerAgent import SceneplannerAgent
 from Agents.AssetFetcher_Agent import AssetFetcher_Agent
 from Agents.LayoutEngine_Agent import LayoutEngine_Agent
+from Agents.VisualIntelligenceLayer_Agent import VisualIntelligenceLayer_Agent
 from Agents.Logger_Agent import get_current
 
 
@@ -21,6 +22,7 @@ class StoryboardComposer_Agent:
         self.planner = SceneplannerAgent(llm_fn=llm_fn)
         self.fetcher = AssetFetcher_Agent(cache_dir=cache_dir, per_keyword=per_keyword)
         self.layout = LayoutEngine_Agent()
+        self.visual_layer = VisualIntelligenceLayer_Agent(collector=self.fetcher)
 
     def close(self):
         self.fetcher.close()
@@ -49,8 +51,13 @@ class StoryboardComposer_Agent:
             if log: log.step_start(f"StoryboardComposer.scene[{idx}]",
                                    scene_id=scene.get("scene_id"),
                                    keywords=scene.get("keywords"))
+            scene_keywords = scene.get("keywords", [])
+            if len(scene_keywords) < 2:
+                extra = self.visual_layer.extract_keywords(scene.get("text", ""))[:3]
+                scene_keywords = list(dict.fromkeys([*scene_keywords, *extra]))
+
             assets = self.fetcher.fetch_for_scene(
-                keywords=scene.get("keywords", []),
+                keywords=scene_keywords,
                 visual_type=scene.get("visual_type", "illustration"),
                 topic=topic,
             )
@@ -61,7 +68,7 @@ class StoryboardComposer_Agent:
             composed.append({
                 "scene_id": scene["scene_id"],
                 "text": scene["text"],
-                "keywords": scene["keywords"],
+                "keywords": scene_keywords,
                 "visual_type": scene["visual_type"],
                 "duration": scene["duration"],
                 "start_time": round(cursor, 2),

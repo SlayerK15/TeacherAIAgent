@@ -12,6 +12,7 @@ from Agents.ContextMemory_Agent import ContextMemoryAgent
 from Agents.VoiceProcessing_Agent import VoiceProcessingAgent
 from Agents.VideoGenerationAgent import VideoGenerationAgent
 from Agents.StoryboardComposer_Agent import StoryboardComposer_Agent
+from Agents.VisualIntelligenceLayer_Agent import VisualIntelligenceLayer_Agent
 from Agents.Logger_Agent import LoggerAgent, set_current
 
 import openai
@@ -64,6 +65,7 @@ clarification_agent = ClarificationAgent(llm_fn=openai_llm)
 context_memory = ContextMemoryAgent()
 video_generation_agent = VideoGenerationAgent(voice_agent)
 storyboard_composer = StoryboardComposer_Agent(llm_fn=openai_llm)
+visual_intelligence_agent = VisualIntelligenceLayer_Agent(collector=storyboard_composer.fetcher)
 
 app = FastAPI()
 
@@ -241,6 +243,18 @@ async def _run_teach_pipeline(user_prompt, audio, session_id, video_minutes, ses
         "audio_folder": f"/output/audio/{session_name}/",
         "responce_txt_url": f"/output/response/{session_name}.txt",
         "log_url": f"/output/logs/{session_name}.log",
+    }
+
+
+@app.post("/visual-intelligence")
+async def visual_intelligence(
+    transcript: str = Form(...),
+    topic: str = Form(""),
+):
+    plan = visual_intelligence_agent.build_visual_plan(transcript=transcript, topic=topic)
+    return {
+        "chunk_count": len(plan),
+        "plan": plan,
     }
 
 

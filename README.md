@@ -1,107 +1,69 @@
 # TeacherAIAgent
 
-TeacherAIAgent is an AI-powered teaching assistant platform that helps break down complex topics, generate structured lessons, answer clarifying questions, and even process voice input. It leverages large language models (LLMs) and modular agents to deliver a personalized, interactive learning experience.
+TeacherAIAgent is a multi-agent teaching platform that converts a prompt (or voice query) into structured lessons, storyboarded visuals, and optional narrated video.
 
-## Features
+## Core capabilities
+- Topic discovery and decomposition
+- Lesson simplification and teaching generation
+- Full transcript/script generation for target duration
+- Storyboard planning (scenes, keywords, visual type, timing)
+- Graphics collection from free/legal-friendly providers
+- Video generation with optional TTS narration
+- Clarification Q&A with session memory
+- Browser dashboard for end-to-end usage
 
-- **Topic Discovery:** Breaks down user prompts into structured learning objectives (tiers).
-- **Simplification:** Simplifies complex topics into step-by-step learning paths.
-- **Lesson Generation:** Creates detailed lessons for each learning step.
-- **Engagement:** Enhances lessons with analogies, examples, and interactive elements.
-- **Clarification:** Answers follow-up questions and provides further explanations.
-- **Voice Input:** Accepts both text and audio (speech-to-text) prompts.
-- **Session Memory:** Remembers user sessions and context for continuity.
-- **REST API:** FastAPI-based backend for easy integration.
+## Architecture at a glance
+- **Backend:** FastAPI (`API/api.py`)
+- **Agents:** Modular pipeline in `Agents/`
+- **Frontend:** Dashboard UI in `Dashboard/dashboard.html`
+- **Outputs:** saved under `output/`
 
-## Folder Structure
+Detailed documentation: **`Docs/Complete_App_Guide.md`**.
 
-```
-Agents/           # Core agent modules (Discovery, Teaching, VoiceProcessing, etc.)
-API/              # FastAPI backend
-Dashboard/        # (Optional) Frontend dashboard
-Docs/             # Documentation and checklists
-output/           # Generated audio, video, and response files
-requirements.txt  # Python dependencies
-main.py           # (Entry point, if used)
-```
+---
 
-## Setup
+## API endpoints
+- `POST /teach` — full pipeline (prompt/audio -> lesson + video)
+- `POST /storyboard` — storyboard JSON generation
+- `POST /visual-intelligence` — transcript-driven keyword/asset plan
+- `POST /clarify` — follow-up Q&A
+- `GET /` — serves dashboard
+- `GET /api/health` — health status
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/SlayerK15/TeacherAIAgent.git
-   cd TeacherAIAgent
-   ```
-2. **Create and activate a virtual environment:**
-   ```sh
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Unix/Mac:
-   source venv/bin/activate
-   ```
-3. **Install deps with uv:**
-   ```sh
-   uv sync
-   ```
-4. **Set your OpenAI API key:**
-   - Set the `OPENAI_API_KEY` environment variable. Optional: `PEXELS_API_KEY`, `UNSPLASH_ACCESS_KEY`.
+---
 
-5. **Run the API server:**
-   ```sh
-   uv run uvicorn API.api:app --reload
-   ```
-
-6. **New endpoint — structured storyboard:**
-   ```sh
-   curl -X POST http://localhost:8000/storyboard -F "user_prompt=Explain photosynthesis" -F "video_minutes=2"
-   ```
-
-## Usage
-
-### Teach Endpoint
-- **POST** `/teach`
-- Accepts: `user_prompt` (text) or `audio` (file)
-- Returns: Topic tiers, simplified steps, lessons, and engaged lessons
-
-Example (using `curl`):
-```sh
-curl -X POST "http://localhost:8000/teach" -F "user_prompt=Explain quantum computing"
+## Quickstart
+```bash
+uv sync
 ```
 
-### Clarify Endpoint
-- **POST** `/clarify`
-- Accepts: `user_question`, `topic`, `session_id`
-- Returns: Clarification/answer
+Set environment variables in `.env`:
+- `OPENAI_API_KEY` (required)
+- `ELEVENLABS_API_KEY` (for narration)
+- `PEXELS_API_KEY` (optional)
+- `UNSPLASH_ACCESS_KEY` (optional)
 
-Example:
-```sh
-curl -X POST "http://localhost:8000/clarify" -F "user_question=What is a qubit?" -F "topic=Quantum Computing"
+Run server:
+```bash
+uv run uvicorn API.api:app --reload
 ```
 
-## Agents Overview
-- **DiscoveryAgent:** Breaks down prompts into learning tiers (main, supporting, background topics).
-- **SimplificationAgent:** Simplifies topics into actionable steps.
-- **TeachingAgent:** Generates lessons for each step.
-- **EngagementAgent:** Adds engagement (examples, analogies).
-- **ClarificationAgent:** Answers follow-up questions.
-- **VoiceProcessingAgent:** Converts speech (audio) to text.
-- **ContextMemoryAgent:** Stores and retrieves session data.
+Open:
+- `http://127.0.0.1:8000/`
 
-## Audio Input
-- Send an audio file (e.g., `.wav`, `.mp3`) to `/teach` as the `audio` field.
-- The system will transcribe and process it as a prompt.
+---
 
-## Output
-- Generated audio, video, and response files are saved in the `output/` directory.
+## Frontend included
+The built-in dashboard supports:
+- text/audio input modes
+- animation/silent toggles
+- transcript and pipeline dump views
+- live logs
+- follow-up clarification
+- visual intelligence plan preview
 
-## Development
-- All agents are modular and can be extended or replaced.
-- See `Docs/` for checklists and POC notes.
+---
 
-## License
-This project is for educational and research purposes. See `LICENSE` for details.
-
-## Acknowledgments
-- Powered by OpenAI GPT models
-- Built with FastAPI
+## Notes
+- This repository is intended for educational/research usage.
+- See `UPGRADE_NOTES.md` for latest dependency/runtime upgrades.
