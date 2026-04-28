@@ -52,13 +52,16 @@ class StoryboardComposer_Agent:
                                    scene_id=scene.get("scene_id"),
                                    keywords=scene.get("keywords"))
             scene_keywords = scene.get("keywords", [])
+            scene_visual_type = scene.get("visual_type", "illustration")
             if len(scene_keywords) < 2:
-                extra = self.visual_layer.extract_keywords(scene.get("text", ""))[:3]
+                semantic = self.visual_layer.extract_semantic_data(scene.get("text", ""), topic=topic)
+                extra = semantic.get("keywords", [])[:3]
                 scene_keywords = list(dict.fromkeys([*scene_keywords, *extra]))
+                scene_visual_type = semantic.get("visual_type") or scene_visual_type
 
             assets = self.fetcher.fetch_for_scene(
                 keywords=scene_keywords,
-                visual_type=scene.get("visual_type", "illustration"),
+                visual_type=scene_visual_type,
                 topic=topic,
             )
             layout = self.layout.apply(scene, assets)
@@ -69,7 +72,7 @@ class StoryboardComposer_Agent:
                 "scene_id": scene["scene_id"],
                 "text": scene["text"],
                 "keywords": scene_keywords,
-                "visual_type": scene["visual_type"],
+                "visual_type": scene_visual_type,
                 "duration": scene["duration"],
                 "start_time": round(cursor, 2),
                 "end_time": round(cursor + scene["duration"], 2),

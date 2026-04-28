@@ -65,7 +65,7 @@ clarification_agent = ClarificationAgent(llm_fn=openai_llm)
 context_memory = ContextMemoryAgent()
 video_generation_agent = VideoGenerationAgent(voice_agent)
 storyboard_composer = StoryboardComposer_Agent(llm_fn=openai_llm)
-visual_intelligence_agent = VisualIntelligenceLayer_Agent(collector=storyboard_composer.fetcher)
+visual_intelligence_agent = VisualIntelligenceLayer_Agent(collector=storyboard_composer.fetcher, llm_fn=openai_llm)
 
 app = FastAPI()
 
