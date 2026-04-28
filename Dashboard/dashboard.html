@@ -415,13 +415,6 @@
       }
     });
 
-    
-        const data = await r.json();
-        $('visualDump').textContent = JSON.stringify(data, null, 2);
-      } catch (e) {
-        $('visualDump').textContent = `Visual plan request failed: ${e}`;
-      }
-    });
 
   </script>
 </body>
