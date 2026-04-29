@@ -18,7 +18,7 @@ TeacherAIAgent is a multi-agent teaching platform that converts a prompt (or voi
 - **Frontend:** Dashboard UI in `Dashboard/dashboard.html`
 - **Outputs:** saved under `output/`
 
-Detailed documentation: **`Docs/Complete_App_Guide.md`**.
+Detailed documentation: **`Docs/Complete_App_Guide.md`** and **`Docs/Agents_Deep_Dive.md`**.
 
 ---
 
