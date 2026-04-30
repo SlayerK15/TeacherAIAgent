@@ -111,12 +111,14 @@
               padding: 0.8em; border-radius: 6px; margin-top: 0.6em; white-space: pre-wrap; }
 
     .hidden { display: none !important; }
+    .hero {background: linear-gradient(135deg,#111827,#0f172a 40%,#1d4ed8 140%);border:1px solid var(--border);padding:1em 1.2em;border-radius:14px;margin-bottom:1.1em;}
+    .kpi{display:inline-block;background:#0b1220;border:1px solid var(--border);padding:.35em .6em;border-radius:999px;margin-right:.4em;color:var(--muted);font-size:.8em;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>AI Teacher</h1>
-    <p class="sub">Type a topic or upload a question — get a narrated, illustrated lesson video.</p>
+    <div class="hero"><h1>AI Teacher Studio</h1>
+    <p class="sub">Generate explainers, storyboard visuals, and classroom-ready videos from text or audio prompts.</p><span class="kpi">Multi-Agent</span><span class="kpi">Visual Intelligence</span><span class="kpi">FastAPI + Dashboard</span></div>
 
     <div class="card">
       <form id="teachForm" autocomplete="off">
@@ -179,6 +181,7 @@
         <pre id="pipelineDump"></pre>
       </details>
     </div>
+
 
     <div id="logCard" class="card hidden">
       <label style="margin-bottom: 0.6em;">Live log</label>
@@ -411,6 +414,8 @@
         ans.innerHTML = `<div class="answer" style="border-left-color:var(--err);">Error: ${escapeHtml(err.message)}</div>`;
       }
     });
+
+
   </script>
 </body>
 </html>
